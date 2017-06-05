@@ -19,9 +19,7 @@ class Stage {
     return a + (Math.floor((b - a) * Math.random() * factor) / factor);
   }
 
-  constructor(config = {}) {
-    const _this = this;
-
+  constructor() {
     this.nodeCount = 500;
     this._animate = window.requestAnimationFrame ||
       window.webkitRequestAnimationFrame ||
@@ -38,11 +36,6 @@ class Stage {
     this._height = this._element.offsetHeight;
     this._animate = this._animate.bind(window);
 
-    // Update configs based on props.
-    Object.keys(config).forEach((prop) => {
-      _this[prop] = config[prop];
-    });
-
     this.draw = this.draw.bind(this);
     this.updatePosition = this.updatePosition.bind(this);
   }
@@ -50,14 +43,20 @@ class Stage {
   /**
    * Instigate the class
    */
-  init() {
+  init(config = {}) {
     const _this = this;
+
+    // Update configs based on props.
+    Object.keys(config).forEach((prop) => {
+      _this[prop] = config[prop];
+    });
 
     window.addEventListener('resize', this.setDimensions.bind(this));
     this.setDimensions();
 
     this.particles = _range(0, this.nodeCount).map(() => {
       return new Confetti({
+        color: _this.color,
         numberOfParticles: _this.nodeCount,
         canvas: this._canvas,
         x: _this.constructor.randomFrom(0, _this._canvas.width),
