@@ -20,6 +20,10 @@ class Stage {
   }
 
   constructor() {
+    if(this._element === null) {
+      return;
+    }
+
     this.nodeCount = 500;
     this._animate = window.requestAnimationFrame ||
       window.webkitRequestAnimationFrame ||
@@ -28,12 +32,9 @@ class Stage {
         setTimeout(callback, 1000 / 60);
       };
 
+    this._element = document.getElementById('confettiContainer');
+    this._canvas = document.getElementById('confettiCanvas');
     this._angle = 0.01;
-    this._element = document.querySelector('div');
-    this._canvas = document.querySelector('canvas');
-    this._context = this._canvas.getContext('2d');
-    this._width = this._element.offsetWidth;
-    this._height = this._element.offsetHeight;
     this._animate = this._animate.bind(window);
 
     this.draw = this.draw.bind(this);
@@ -45,6 +46,14 @@ class Stage {
    */
   init(config = {}) {
     const _this = this;
+
+    if(this._element === null || this._canvas === null) {
+      return;
+    }
+
+    this._context = this._canvas.getContext('2d');
+    this._width = this._element.offsetWidth;
+    this._height = this._element.offsetHeight;
 
     // Update configs based on props.
     Object.keys(config).forEach((prop) => {
@@ -60,7 +69,7 @@ class Stage {
         numberOfParticles: _this.nodeCount,
         canvas: this._canvas,
         x: _this.constructor.randomFrom(0, _this._canvas.width),
-        y: 0,
+        y: _this.constructor.randomFrom(0, _this._canvas.height),
         r: _this.constructor.randomFrom(5, 30),
         tilt: _this.constructor.randomFrom(-10, 0),
         tiltAngle: 0,
@@ -124,23 +133,23 @@ class Stage {
   }
 
   /**
-   * @param confetti
-   * @param idx
+   * @param confetti - The particle object
+   * @param index - The index of the particle
    */
-  updatePosition(confetti, idx) {
+  updatePosition(confetti, index) {
     const confettiNode = confetti;
 
     confettiNode.tiltAngle += confettiNode.tiltAngleIncrement;
-    confettiNode.y += (Math.cos(this._angle + confettiNode.d) + 1 + (confettiNode.r / 2)) / 2;
+    confettiNode.y += (Math.cos(this._angle + confettiNode.d) + 1 + (confettiNode.r / 2)) / 4;
     confettiNode.x += Math.sin(this._angle);
-    confettiNode.tilt = 15 * (Math.sin(confettiNode.tiltAngle - (idx / 3)));
+    confettiNode.tilt = 15 * (Math.sin(confettiNode.tiltAngle - (index / 3)));
 
+    // IF the flake is still rendered inside the canvas.
     if (confettiNode.isFlakeExiting()) {
-      if (idx % 5 > 0 || idx % 2 === 0) {
+      if (index % 5 > 0 || index % 2 === 0) {
         confettiNode.x = this.constructor.randomFrom(0, this._canvas.width);
         confettiNode.y = -10;
         confettiNode.tilt = this.constructor.randomFrom(-10, 0);
-
       } else if (Math.sin(this._angle) > 0) {
         confettiNode.x = -5;
         confettiNode.y = this.constructor.randomFrom(0, this._canvas.height);
@@ -159,10 +168,10 @@ class Stage {
    */
   draw(confetti) {
     this._context.beginPath();
-    this._context.lineWidth = confetti.r / 2;
+    this._context.lineWidth = confetti.r / 3;
     this._context.strokeStyle = confetti.color;
     this._context.moveTo(confetti.x + confetti.tilt + (confetti.r / 4), confetti.y);
-    this._context.lineTo(confetti.x + confetti.tilt, confetti.y + confetti.tilt + (confetti.r / 4));
+    this._context.lineTo(confetti.x + confetti.tilt, confetti.y + confetti.tilt + (confetti.r / 6));
     this._context.stroke();
   }
 
